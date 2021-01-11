@@ -8,12 +8,35 @@ class Player:
 
     def __init__(self, pos: pt.Point):
         self.surface = pygame.image.load('assets/player.png')
-        self.rect = self.surface.get_rect()
-        self.rect.topleft = pos
+        self.size = pt.Point._make(self.surface.get_size())
+        self.pos = pos
         self.velocity = pt.Point(0, 0)
 
+    def get_rect(self):
+        return Rect(self.pos, self.size)
+
+    def update(self, blocks: [(pygame.Surface, Rect)], gravity: float):
+        self.pos = self.pos._replace(x = self.pos.x + self.velocity.x)
+        for index in self.get_rect().collidelistall([block[1] for block in blocks]):
+            if self.velocity.x > 0:
+                self.pos = self.pos._replace(x = blocks[index][1].left - self.size.x)
+            elif self.velocity.x < 0:
+                self.pos = self.pos._replace(x  = blocks[index][1].right)
+        self.pos = self.pos._replace(y = self.pos.y + self.velocity.y)
+        for index in self.get_rect().collidelistall([block[1] for block in blocks]):
+            if self.velocity.y > 0:
+                self.pos = self.pos._replace(y = blocks[index][1].top - self.size.y)
+                self.velocity = self.velocity._replace(y = 0)
+            elif self.velocity.y < 0:
+                self.pos = self.pos._replace(y = blocks[index][1].bottom)
+                self.velocity = self.velocity._replace(y = 0)
+        self.velocity = pt.Point(0, self.velocity.y + gravity)
+
     def draw(self, surface: pygame.Surface, cell_size: pt.Point):
-        surface.blit(self.surface, ((self.rect.x, self.rect.y), self.rect.size))
+        surface.blit(self.surface, ((self.pos.x, self.pos.y), self.size))
+
+    def jump(self):
+        self.velocity = self.velocity._replace(y = self.velocity.y - 4)
 
 class Platformer(pt.GameScreen):
 
@@ -24,7 +47,7 @@ class Platformer(pt.GameScreen):
         self.cell_size = pt.Point(16, 16)
         pygame.display.set_icon(self.grass)
         pygame.display.set_caption('Platformer test')
-        real_size = pt.Point(800, 600)
+        real_size = pt.Point(1000, 600)
         size = pt.Point(real_size.x // 4, real_size.y // 4)
         super().__init__(pygame.display.set_mode(real_size), real_size, size)
         pygame.key.set_repeat(1000 // self.frame_rate)
@@ -52,15 +75,18 @@ class Platformer(pt.GameScreen):
         for block in self.blocks:
             self.screen.blit(block[0], block[1])
         self.player.draw(self.screen, self.cell_size)
-        print(self.player.rect.collidelist([block[1] for block in self.blocks]))
+        #     self.player.velocity = self.player.velocity._replace(y = -self.player.velocity.y)
+        # else:
+        #     self.player.velocity = self.player.velocity._replace(y = self.player.velocity.y + 0.2)
+        self.player.update(self.blocks, 0.2)
 
     def key_down(self, event: pygame.event.Event):
         if event.key == K_a:
-            self.player.rect.x -= 1
-        if event.key == K_d:
-            self.player.rect.x += 1
-        if event.key == K_s:
-            self.player.rect.y += 1
+            self.player.velocity = self.player.velocity._replace(x = self.player.velocity.x - 1)
+        elif event.key == K_d:
+            self.player.velocity = self.player.velocity._replace(x = self.player.velocity.x + 1)
+        elif event.key == K_w:
+            self.player.jump()
 
 if __name__ == "__main__":
     Platformer().run()
