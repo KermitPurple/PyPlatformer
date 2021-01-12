@@ -5,6 +5,61 @@ from pygame.locals import *
 # Don't know if better to create surface, rect tuple list or map
 # TODO: refractor
 
+class Block(pygame.sprite.Sprite):
+
+    def __init__(self, image: pygame.Surface, rect: Rect):
+        super().__init__()
+        self.image = image
+        self.rect = rect
+
+    def draw(self, offset):
+        surface.blit(self.imagee, ((self.rect.x + offset.x, self.rect.y + offset.y), self.rect.size))
+
+class World:
+
+    def __init__(self, world_path: str, block_dict: dict, cell_size: pt.Point):
+        self.world_path = world_path
+        self.block_dict = block_dict
+        self.cell_size = cell_size
+        self.map = self.load_map(world_path)
+        self.blocks = self.make_block_group(self.map, block_dict, cell_size)
+
+    def load_map(self, path) -> [int]:
+        with open(path, 'r') as f:
+            return [[int(char) if char.isnumeric() else char for char in row if char != '\n'] for row in f]
+
+    def draw_map(self, surface: pygame.Surface, world_map: [[int]] = None, block_dict: dict = None, cell_size: pt.Point = None):
+        if not world_map:
+            world_map = self.map
+        if not block_dict:
+            block_dict = self.block_dict
+        if not cell_size:
+            cell_size = self.cell_size
+        for i, row in enumerate(world_map):
+            for j, cell in enumerate(row):
+                if block_dict[cell] != None:
+                    surface.blit(block_dict[cell], (j * self.cell_size.x, i * self.cell_size.y))
+
+    def make_block_group(self, world_map: [[int]] = None, block_dict: dict = None, cell_size: pt.Point = None) -> [Block]:
+        if not world_map:
+            world_map = self.map
+        if not block_dict:
+            block_dict = self.block_dict
+        if not cell_size:
+            cell_size = self.cell_size
+        blocks = pygame.sprite.Group()
+        for i, row in enumerate(world_map):
+            for j, cell in enumerate(row):
+                if block_dict[cell] != None:
+                    blocks.add(Block(block_dict[cell], Rect((j * cell_size.x, i * cell_size.y), cell_size)))
+        return blocks
+
+    def draw_blocks(self, screen: pygame.Surface, blocks: [(pygame.Surface, Rect)] = None, offset: pt.Point = pt.Point(0, 0)):
+        if not blocks:
+            blocks = self.blocks
+        for block in blocks:
+            screen.blit(block.image, ((block.rect.x + offset.x, block.rect.y + offset.y), block.rect.size))
+
 class Player(pygame.sprite.Sprite):
 
     def __init__(self, pos: pt.Point):
@@ -53,7 +108,7 @@ class Platformer(pt.GameScreen):
     def __init__(self):
         pygame.init()
         self.cell_size = pt.Point(16, 16)
-        self.world = pt.World(
+        self.world = World(
                 'assets/map.txt',
                 {
                     0: None,
