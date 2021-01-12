@@ -5,9 +5,10 @@ from pygame.locals import *
 # Don't know if better to create surface, rect tuple list or map
 # TODO: refractor
 
-class Player:
+class Player(pygame.sprite.Sprite):
 
     def __init__(self, pos: pt.Point):
+        super().__init__()
         self.surface = pygame.image.load('assets/player.png')
         self.rect = self.surface.get_rect()
         self.rect.topleft = pos
@@ -93,8 +94,8 @@ class Platformer(pt.GameScreen):
     def update(self):
         self.screen.fill('skyblue')
         self.update_camera_offset()
-        self.draw_paralax(self.bg1, self.bg1_rect, pt.Point(20, 1))
-        self.draw_paralax(self.bg2, self.bg2_rect, pt.Point(5, 1))
+        self.draw_paralax(self.bg1, self.bg1_rect, pt.Point(20, 20))
+        self.draw_paralax(self.bg2, self.bg2_rect, pt.Point(2, 2))
         self.world.draw_blocks(self.screen, offset = self.get_int_offset())
         self.player.draw(self.screen, self.cell_size, self.get_int_offset())
         self.player.update(self.blocks, 0.2)
