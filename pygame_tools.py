@@ -330,6 +330,16 @@ class MenuScreen(GameScreen):
                     self.button_index = i
                     button()
 
+class Block(pygame.sprite.Sprite):
+
+    def __init__(self, image: pygame.Surface, rect: Rect):
+        super().__init__()
+        self.image = image
+        self.rect = rect
+
+    def draw(self, offset):
+        surface.blit(self.imagee, ((self.rect.x + offset.x, self.rect.y + offset.y), self.rect.size))
+
 class World:
 
     def __init__(self, world_path: str, block_dict: dict, cell_size: Point):
@@ -337,7 +347,7 @@ class World:
         self.block_dict = block_dict
         self.cell_size = cell_size
         self.map = self.load_map(world_path)
-        self.blocks = self.make_block_list(self.map, block_dict, cell_size)
+        self.blocks = self.make_block_group(self.map, block_dict, cell_size)
 
     def load_map(self, path) -> [int]:
         with open(path, 'r') as f:
@@ -355,22 +365,22 @@ class World:
                 if block_dict[cell] != None:
                     surface.blit(block_dict[cell], (j * self.cell_size.x, i * self.cell_size.y))
 
-    def make_block_list(self, world_map: [[int]] = None, block_dict: dict = None, cell_size: Point = None) -> [(pygame.Surface, Rect)]:
+    def make_block_group(self, world_map: [[int]] = None, block_dict: dict = None, cell_size: Point = None) -> [Block]:
         if not world_map:
             world_map = self.map
         if not block_dict:
             block_dict = self.block_dict
         if not cell_size:
             cell_size = self.cell_size
-        blocks = []
+        blocks = pygame.sprite.Group()
         for i, row in enumerate(world_map):
             for j, cell in enumerate(row):
                 if block_dict[cell] != None:
-                    blocks.append((block_dict[cell], Rect((j * cell_size.x, i * cell_size.y), cell_size)))
+                    blocks.add(Block(block_dict[cell], Rect((j * cell_size.x, i * cell_size.y), cell_size)))
         return blocks
 
     def draw_blocks(self, screen: pygame.Surface, blocks: [(pygame.Surface, Rect)] = None, offset: Point = Point(0, 0)):
         if not blocks:
             blocks = self.blocks
         for block in blocks:
-            screen.blit(block[0], ((block[1].x + offset.x, block[1].y + offset.y), block[1].size))
+            screen.blit(block.image, ((block.rect.x + offset.x, block.rect.y + offset.y), block.rect.size))

@@ -22,19 +22,19 @@ class Player(pygame.sprite.Sprite):
         self.rect.x += self.velocity.x
         if self.velocity.y > 0:
             self.can_jump = False
-        for index in self.get_rect().collidelistall([block[1] for block in blocks]):
+        for index in self.get_rect().collidelistall([block.rect for block in blocks]):
             if self.velocity.x > 0: # hit wall on right
-                self.rect.right = blocks[index][1].left
+                self.rect.right = blocks.sprites()[index].rect.left
             elif self.velocity.x < 0: # hit wall on left
-                self.rect.left = blocks[index][1].right
+                self.rect.left = blocks.sprites()[index].rect.right
         self.rect.y += self.velocity.y
-        for index in self.get_rect().collidelistall([block[1] for block in blocks]):
+        for index in self.get_rect().collidelistall([block.rect for block in blocks]):
             if self.velocity.y > 0: # hit floor
-                self.rect.bottom = blocks[index][1].top
+                self.rect.bottom = blocks.sprites()[index].rect.top
                 self.velocity = self.velocity._replace(y = 0)
                 self.can_jump = True
             elif self.velocity.y < 0: # hit ceiling
-                self.rect.top = blocks[index][1].bottom
+                self.rect.top = blocks.sprites()[index].rect.bottom
                 self.velocity = self.velocity._replace(y = 0)
         self.velocity = pt.Point(0, self.velocity.y + gravity)
         if self.velocity.y > 6:
