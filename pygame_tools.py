@@ -3,7 +3,6 @@
 import pygame, sys
 from glob import glob
 from pygame.locals import *
-from collections import namedtuple
 from recordclass import RecordClass
 
 class Point(RecordClass):
