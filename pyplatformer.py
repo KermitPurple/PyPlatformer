@@ -69,8 +69,7 @@ class Platformer(pt.GameScreen):
     def update(self):
         self.screen.fill('skyblue')
         # self.draw_map()
-        for block in self.blocks:
-            self.screen.blit(block[0], block[1])
+        self.world.draw_blocks(self.screen)
         self.player.draw(self.screen, self.cell_size)
         #     self.player.velocity = self.player.velocity._replace(y = -self.player.velocity.y)
         # else:

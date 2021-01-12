@@ -340,7 +340,7 @@ class World:
         with open(path, 'r') as f:
             return [[int(char) if char.isnumeric() else char for char in row if char != '\n'] for row in f]
 
-    def draw_map(self, world_map: [[int]] = None, block_dict: dict = None, cell_size: Point = None):
+    def draw_map(self, surface: pygame.Surface, world_map: [[int]] = None, block_dict: dict = None, cell_size: Point = None):
         if not world_map:
             world_map = self.map
         if not block_dict:
@@ -350,7 +350,7 @@ class World:
         for i, row in enumerate(world_map):
             for j, cell in enumerate(row):
                 if block_dict[cell] != None:
-                    self.screen.blit(block_dict[cell], (j * self.cell_size.x, i * self.cell_size.y))
+                    surface.blit(block_dict[cell], (j * self.cell_size.x, i * self.cell_size.y))
 
     def make_block_list(self, world_map: [[int]] = None, block_dict: dict = None, cell_size: Point = None) -> [(pygame.Surface, Rect)]:
         if not world_map:
@@ -365,3 +365,9 @@ class World:
                 if block_dict[cell] != None:
                     blocks.append((block_dict[cell], Rect((j * cell_size.x, i * cell_size.y), cell_size)))
         return blocks
+
+    def draw_blocks(self, screen: pygame.Surface, blocks: [(pygame.Surface, Rect)] = None, offset: Point = Point(0, 0)):
+        if not blocks:
+            blocks = self.blocks
+        for block in blocks:
+            screen.blit(block[0], ((block[1].x + offset.x, block[1].y + offset.y), block[1].size))
