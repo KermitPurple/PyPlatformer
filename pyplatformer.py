@@ -84,7 +84,8 @@ class Platformer(pt.GameScreen):
         self.screen.blit(surface, (dest.x + offset.x / scale.x, dest.y + offset.y / scale.y))
 
     def update_camera_offset(self):
-        self.camera_offset = pt.Point(self.camera_offset.x + (self.window_size.x / 2 - self.player.rect.x - self.camera_offset.x) / self.scroll_speed, self.camera_offset.y + (self.window_size.y / 2 - self.player.rect.y - self.camera_offset.y) / self.scroll_speed)
+        self.camera_offset.x += (self.window_size.x / 2 - self.player.rect.x - self.camera_offset.x) / self.scroll_speed
+        self.camera_offset.y += (self.window_size.y / 2 - self.player.rect.y - self.camera_offset.y) / self.scroll_speed
 
     def get_int_offset(self):
         return pt.Point(int(self.camera_offset.x), int(self.camera_offset.y))
