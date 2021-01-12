@@ -3,6 +3,7 @@ import pygame_tools as pt
 from pygame.locals import *
 
 # Don't know if better to create surface, rect tuple list or map
+# TODO: refractor
 
 class Player:
 
@@ -11,6 +12,7 @@ class Player:
         self.size = pt.Point._make(self.surface.get_size())
         self.pos = pos
         self.velocity = pt.Point(0, 0)
+        self.can_jump = True
 
     def get_rect(self):
         return Rect(self.pos, self.size)
@@ -24,9 +26,10 @@ class Player:
                 self.pos = self.pos._replace(x  = blocks[index][1].right)
         self.pos = self.pos._replace(y = self.pos.y + self.velocity.y)
         for index in self.get_rect().collidelistall([block[1] for block in blocks]):
-            if self.velocity.y > 0:
+            if self.velocity.y > 0: # hit floor
                 self.pos = self.pos._replace(y = blocks[index][1].top - self.size.y)
                 self.velocity = self.velocity._replace(y = 0)
+                self.can_jump = True
             elif self.velocity.y < 0:
                 self.pos = self.pos._replace(y = blocks[index][1].bottom)
                 self.velocity = self.velocity._replace(y = 0)
@@ -36,7 +39,9 @@ class Player:
         surface.blit(self.surface, ((self.pos.x, self.pos.y), self.size))
 
     def jump(self):
-        self.velocity = self.velocity._replace(y = self.velocity.y - 4)
+        if self.can_jump:
+            self.velocity = self.velocity._replace(y = -4)
+            self.can_jump = False
 
 class Platformer(pt.GameScreen):
 
@@ -79,13 +84,15 @@ class Platformer(pt.GameScreen):
         # else:
         #     self.player.velocity = self.player.velocity._replace(y = self.player.velocity.y + 0.2)
         self.player.update(self.blocks, 0.2)
+        self.keyboard_input()
 
-    def key_down(self, event: pygame.event.Event):
-        if event.key == K_a:
-            self.player.velocity = self.player.velocity._replace(x = self.player.velocity.x - 1)
-        elif event.key == K_d:
-            self.player.velocity = self.player.velocity._replace(x = self.player.velocity.x + 1)
-        elif event.key == K_w:
+    def keyboard_input(self):
+        keys = pygame.key.get_pressed()
+        if keys[K_a]:
+            self.player.velocity = self.player.velocity._replace(x = -2)
+        if keys[K_d]:
+            self.player.velocity = self.player.velocity._replace(x = 2)
+        if keys[K_w]:
             self.player.jump()
 
 if __name__ == "__main__":
