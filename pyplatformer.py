@@ -47,32 +47,29 @@ class Platformer(pt.GameScreen):
 
     def __init__(self):
         pygame.init()
-        self.grass = pygame.image.load('assets/grass.png')
-        self.dirt = pygame.image.load('assets/dirt.png')
         self.cell_size = pt.Point(16, 16)
-        pygame.display.set_icon(self.grass)
+        self.world = pt.World(
+                'assets/map.txt',
+                {
+                    0: None,
+                    1: pygame.image.load('assets/grass.png'),
+                    2: pygame.image.load('assets/dirt.png'),
+                    },
+                self.cell_size,
+                )
+        pygame.display.set_icon(pygame.image.load('assets/grass.png'))
         pygame.display.set_caption('Platformer test')
         real_size = pt.Point(1000, 600)
         size = pt.Point(real_size.x // 4, real_size.y // 4)
         super().__init__(pygame.display.set_mode(real_size), real_size, size)
         pygame.key.set_repeat(1000 // self.frame_rate)
-        self.map = self.load_map('assets/map.txt')
         self.player = Player(pt.Point(128, 65))
-        self.blocks = []
-        for i, row in enumerate(self.map):
-            for j, cell in enumerate(row):
-                if cell == 1 or cell == 2:
-                    self.blocks.append((self.grass if cell == 1 else self.dirt, Rect((j * self.cell_size.x, i * self.cell_size.y), self.cell_size)))
+        self.blocks = self.world.blocks
 
     def load_map(self, path) -> [int]:
         with open(path, 'r') as f:
             return [[int(char) for char in row if char != '\n'] for row in f]
 
-    def draw_map(self):
-        for i, row in enumerate(self.map):
-            for j, cell in enumerate(row):
-                if cell == 1 or cell == 2:
-                    self.screen.blit(self.grass if cell == 1 else self.dirt, (j * self.cell_size.x, i * self.cell_size.y))
 
     def update(self):
         self.screen.fill('skyblue')

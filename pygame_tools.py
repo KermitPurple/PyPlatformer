@@ -327,3 +327,41 @@ class MenuScreen(GameScreen):
                     self.button_index = i
                     button()
 
+class World:
+
+    def __init__(self, world_path: str, block_dict: dict, cell_size: Point):
+        self.world_path = world_path
+        self.block_dict = block_dict
+        self.cell_size = cell_size
+        self.map = self.load_map(world_path)
+        self.blocks = self.make_block_list(self.map, block_dict, cell_size)
+
+    def load_map(self, path) -> [int]:
+        with open(path, 'r') as f:
+            return [[int(char) if char.isnumeric() else char for char in row if char != '\n'] for row in f]
+
+    def draw_map(self, world_map: [[int]] = None, block_dict: dict = None, cell_size: Point = None):
+        if not world_map:
+            world_map = self.map
+        if not block_dict:
+            block_dict = self.block_dict
+        if not cell_size:
+            cell_size = self.cell_size
+        for i, row in enumerate(world_map):
+            for j, cell in enumerate(row):
+                if block_dict[cell] != None:
+                    self.screen.blit(block_dict[cell], (j * self.cell_size.x, i * self.cell_size.y))
+
+    def make_block_list(self, world_map: [[int]] = None, block_dict: dict = None, cell_size: Point = None) -> [(pygame.Surface, Rect)]:
+        if not world_map:
+            world_map = self.map
+        if not block_dict:
+            block_dict = self.block_dict
+        if not cell_size:
+            cell_size = self.cell_size
+        blocks = []
+        for i, row in enumerate(world_map):
+            for j, cell in enumerate(row):
+                if block_dict[cell] != None:
+                    blocks.append((block_dict[cell], Rect((j * cell_size.x, i * cell_size.y), cell_size)))
+        return blocks
