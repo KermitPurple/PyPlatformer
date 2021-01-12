@@ -9,38 +9,38 @@ class Player:
 
     def __init__(self, pos: pt.Point):
         self.surface = pygame.image.load('assets/player.png')
-        self.size = pt.Point._make(self.surface.get_size())
-        self.pos = pos
+        self.rect = self.surface.get_rect()
+        self.rect.topleft = pos
         self.velocity = pt.Point(0, 0)
         self.can_jump = True
 
     def get_rect(self):
-        return Rect(self.pos, self.size)
+        return self.rect
 
     def update(self, blocks: [(pygame.Surface, Rect)], gravity: float):
-        self.pos = self.pos._replace(x = self.pos.x + self.velocity.x)
+        self.rect.x += self.velocity.x
         if self.velocity.y > 0:
             self.can_jump = False
         for index in self.get_rect().collidelistall([block[1] for block in blocks]):
-            if self.velocity.x > 0:
-                self.pos = self.pos._replace(x = blocks[index][1].left - self.size.x)
-            elif self.velocity.x < 0:
-                self.pos = self.pos._replace(x  = blocks[index][1].right)
-        self.pos = self.pos._replace(y = self.pos.y + self.velocity.y)
+            if self.velocity.x > 0: # hit wall on right
+                self.rect.right = blocks[index][1].left
+            elif self.velocity.x < 0: # hit wall on left
+                self.rect.left = blocks[index][1].right
+        self.rect.y += self.velocity.y
         for index in self.get_rect().collidelistall([block[1] for block in blocks]):
             if self.velocity.y > 0: # hit floor
-                self.pos = self.pos._replace(y = blocks[index][1].top - self.size.y)
+                self.rect.bottom = blocks[index][1].top
                 self.velocity = self.velocity._replace(y = 0)
                 self.can_jump = True
-            elif self.velocity.y < 0:
-                self.pos = self.pos._replace(y = blocks[index][1].bottom)
+            elif self.velocity.y < 0: # hit ceiling
+                self.rect.top = blocks[index][1].bottom
                 self.velocity = self.velocity._replace(y = 0)
         self.velocity = pt.Point(0, self.velocity.y + gravity)
         if self.velocity.y > 6:
             self.velocity = self.velocity._replace(y = 6)
 
     def draw(self, surface: pygame.Surface, cell_size: pt.Point, offset: pt.Point):
-        surface.blit(self.surface, ((self.pos.x + offset.x, self.pos.y + offset.y), self.size))
+        surface.blit(self.surface, ((self.rect.x + offset.x, self.rect.y + offset.y), self.rect.size))
 
     def jump(self):
         if self.can_jump:
@@ -84,7 +84,7 @@ class Platformer(pt.GameScreen):
         self.screen.blit(surface, (dest.x + offset.x / scale.x, dest.y + offset.y / scale.y))
 
     def update_camera_offset(self):
-        self.camera_offset = pt.Point(self.camera_offset.x + (self.window_size.x / 2 - self.player.pos.x - self.camera_offset.x) / self.scroll_speed, self.camera_offset.y + (self.window_size.y / 2 - self.player.pos.y - self.camera_offset.y) / self.scroll_speed)
+        self.camera_offset = pt.Point(self.camera_offset.x + (self.window_size.x / 2 - self.player.rect.x - self.camera_offset.x) / self.scroll_speed, self.camera_offset.y + (self.window_size.y / 2 - self.player.rect.y - self.camera_offset.y) / self.scroll_speed)
 
     def get_int_offset(self):
         return pt.Point(int(self.camera_offset.x), int(self.camera_offset.y))
