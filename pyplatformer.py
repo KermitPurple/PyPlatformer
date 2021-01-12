@@ -66,11 +66,6 @@ class Platformer(pt.GameScreen):
         self.player = Player(pt.Point(128, 65))
         self.blocks = self.world.blocks
 
-    def load_map(self, path) -> [int]:
-        with open(path, 'r') as f:
-            return [[int(char) for char in row if char != '\n'] for row in f]
-
-
     def update(self):
         self.screen.fill('skyblue')
         # self.draw_map()
