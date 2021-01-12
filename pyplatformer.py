@@ -19,6 +19,8 @@ class Player:
 
     def update(self, blocks: [(pygame.Surface, Rect)], gravity: float):
         self.pos = self.pos._replace(x = self.pos.x + self.velocity.x)
+        if self.velocity.y > 0:
+            self.can_jump = False
         for index in self.get_rect().collidelistall([block[1] for block in blocks]):
             if self.velocity.x > 0:
                 self.pos = self.pos._replace(x = blocks[index][1].left - self.size.x)
@@ -34,9 +36,11 @@ class Player:
                 self.pos = self.pos._replace(y = blocks[index][1].bottom)
                 self.velocity = self.velocity._replace(y = 0)
         self.velocity = pt.Point(0, self.velocity.y + gravity)
+        if self.velocity.y > 6:
+            self.velocity = self.velocity._replace(y = 6)
 
-    def draw(self, surface: pygame.Surface, cell_size: pt.Point):
-        surface.blit(self.surface, ((self.pos.x, self.pos.y), self.size))
+    def draw(self, surface: pygame.Surface, cell_size: pt.Point, offset: pt.Point):
+        surface.blit(self.surface, ((self.pos.x + offset.x, self.pos.y + offset.y), self.size))
 
     def jump(self):
         if self.can_jump:
@@ -65,15 +69,20 @@ class Platformer(pt.GameScreen):
         pygame.key.set_repeat(1000 // self.frame_rate)
         self.player = Player(pt.Point(128, 65))
         self.blocks = self.world.blocks
+        self.camera_offset = pt.Point(5, 5)
+        self.scroll_speed = 15
+
+    def update_camera_offset(self):
+        self.camera_offset = pt.Point(self.camera_offset.x + (self.window_size.x / 2 - self.player.pos.x - self.camera_offset.x) / self.scroll_speed, self.camera_offset.y + (self.window_size.y / 2 - self.player.pos.y - self.camera_offset.y) / self.scroll_speed)
+
+    def get_int_offset(self):
+        return pt.Point(int(self.camera_offset.x), int(self.camera_offset.y))
 
     def update(self):
         self.screen.fill('skyblue')
-        # self.draw_map()
-        self.world.draw_blocks(self.screen)
-        self.player.draw(self.screen, self.cell_size)
-        #     self.player.velocity = self.player.velocity._replace(y = -self.player.velocity.y)
-        # else:
-        #     self.player.velocity = self.player.velocity._replace(y = self.player.velocity.y + 0.2)
+        self.update_camera_offset()
+        self.world.draw_blocks(self.screen, offset = self.get_int_offset())
+        self.player.draw(self.screen, self.cell_size, self.get_int_offset())
         self.player.update(self.blocks, 0.2)
         self.keyboard_input()
 
