@@ -71,6 +71,17 @@ class Platformer(pt.GameScreen):
         self.blocks = self.world.blocks
         self.camera_offset = pt.Point(5, 5)
         self.scroll_speed = 15
+        self.bg1_rect = Rect(20, 20, 100, 100)
+        self.bg1 = pygame.Surface(self.bg1_rect.size)
+        self.bg1.fill((12, 150, 12))
+        self.bg2_rect = Rect(50, 50, 200, 100)
+        self.bg2 = pygame.Surface(self.bg2_rect.size)
+        self.bg2.fill((12, 200, 12))
+
+    def draw_paralax(self, surface: pygame.Surface, dest: pt.Point, scale: pt.Point, offset: pt.Point = None):
+        if not offset:
+            offset = self.camera_offset
+        self.screen.blit(surface, (dest.x + offset.x / scale.x, dest.y + offset.y / scale.y))
 
     def update_camera_offset(self):
         self.camera_offset = pt.Point(self.camera_offset.x + (self.window_size.x / 2 - self.player.pos.x - self.camera_offset.x) / self.scroll_speed, self.camera_offset.y + (self.window_size.y / 2 - self.player.pos.y - self.camera_offset.y) / self.scroll_speed)
@@ -81,6 +92,8 @@ class Platformer(pt.GameScreen):
     def update(self):
         self.screen.fill('skyblue')
         self.update_camera_offset()
+        self.draw_paralax(self.bg1, self.bg1_rect, pt.Point(20, 1))
+        self.draw_paralax(self.bg2, self.bg2_rect, pt.Point(5, 1))
         self.world.draw_blocks(self.screen, offset = self.get_int_offset())
         self.player.draw(self.screen, self.cell_size, self.get_int_offset())
         self.player.update(self.blocks, 0.2)
